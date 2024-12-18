@@ -6,7 +6,6 @@ import argparse
 import numpy as np
 from torchvision import transforms
 from .dataset import *
-
 imagenet_transforms = torchvision.transforms.Compose([
     transforms.RandomHorizontalFlip(0.5),
     transforms.ToTensor(),
@@ -26,16 +25,17 @@ input_size_dict = {'Tiny-imagenet': 32,
                    'Stanford_dogs':224,
 }
 
-
 class VisionDataset(object):
     def __init__(self, args):
         self.args = args
         if args.dataset =='CIFAR100':
-            self.supervised_trainloader = get_loader(self.args, indices=None,  transforms=cifar100_transfoms, train=True)
-            self.supervised_testloader = get_loader(self.args, indices=None,  transforms=cifar100_transfoms, train=False)
+            data_transfoms = cifar100_transfoms
+            self.supervised_trainloader = get_loader(self.args, indices=None,  transforms=data_transfoms, train=True)
+            self.supervised_testloader = get_loader(self.args, indices=None,  transforms=data_transfoms, train=False)
         if args.dataset == 'Tiny-imagenet':
-            self.supervised_trainloader = get_loader(self.args, indices=None, transforms=imagenet_transforms, train=True)
-            self.supervised_testloader = get_loader(self.args, indices=None, transforms=imagenet_transforms, train=False)
+            data_transfoms=imagenet_transforms
+            self.supervised_trainloader = get_loader(self.args, indices=None, transforms=data_transfoms, train=True)
+            self.supervised_testloader = get_loader(self.args, indices=None, transforms=data_transfoms, train=False)
         # if args.dataset == 'SVHN':
         #     self.train_class_labels_dict, self.test_class_labels_dict = classwise_split(
         #         targets=self.supervised_trainloader.dataset.labels), classwise_split(
@@ -65,9 +65,9 @@ class VisionDataset(object):
             testidx += [self.test_class_labels_dict[k] for k in selected_cls]
 
             noise_target_transform = ProcessTargets(self.args, i)
-            train_loader = get_loader(args, indices=np.concatenate(trainidx), transforms=cifar100_transfoms, train=True, shuffle=True,\
+            train_loader = get_loader(args, indices=np.concatenate(trainidx), transforms=data_transfoms, train=True, shuffle=True,\
                                       target_transforms=noise_target_transform)
-            test_loader = get_loader(args, indices=np.concatenate(testidx), transforms=cifar100_transfoms, train=False)
+            test_loader = get_loader(args, indices=np.concatenate(testidx), transforms=data_transfoms, train=False)
             self.data_loaders['sequential'][i+1]['train'] = train_loader
             self.data_loaders['sequential'][i+1]['val'] = test_loader
 

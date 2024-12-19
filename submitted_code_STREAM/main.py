@@ -145,7 +145,8 @@ if __name__ == "__main__":
                         help='noise of label')
     parser.add_argument('--noise_rate', type=float, default=0.3,
                         help='noise rate for label')
-
+    parser.add_argument('--apply_augmentation', type=bool, default=False,
+                        help='apply data augmentation to buffer data or not')
     args = parser.parse_args()
 
     args.cuda = True if args.cuda == 'yes' else False

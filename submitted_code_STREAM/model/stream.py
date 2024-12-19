@@ -31,7 +31,7 @@ class Net(nn.Module):
         self.args = args
         self.ce = nn.CrossEntropyLoss()
         self.n_outputs = n_outputs
-
+        self.apply_augmentation = args.apply_augmentation
         self.opt = optim.Adam(self.parameters(), args.lr) \
             if args.dataset != 'mixture' else optim.SGD(self.parameters(), args.lr)
         self.transforms = transforms.Compose([
@@ -125,7 +125,8 @@ class Net(nn.Module):
             # shuffle
             index = torch.randperm(len(m_x))
             m_x, m_y = m_x[index], m_y[index]
-            m_x = self.transforms(m_x)
+            if self.apply_augmentation:
+                m_x = self.transforms(m_x)
             output = self.net(m_x)
             loss_m = self.ce(output, m_y)
             self.loss_v = self.beta * self.loss_v + (1 - self.beta) * loss_m.detach()

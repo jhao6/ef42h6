@@ -1,14 +1,10 @@
-
-import random
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 import numpy as np
 
-import torchvision.models
-
+import torchvision
+from torchvision import transforms
 from .common import MLP, ResNet18
 
 
@@ -38,7 +34,10 @@ class Net(nn.Module):
 
         self.opt = optim.Adam(self.parameters(), args.lr) \
             if args.dataset != 'mixture' else optim.SGD(self.parameters(), args.lr)
-
+        self.transforms = transforms.Compose([
+                            transforms.RandomHorizontalFlip(0.5),
+                            transforms.RandomResizedCrop(size=(32, 32))
+        ])
         self.n_memories = args.n_memories
         self.gpu = args.cuda
         self.current_loss = 0
@@ -126,6 +125,7 @@ class Net(nn.Module):
             # shuffle
             index = torch.randperm(len(m_x))
             m_x, m_y = m_x[index], m_y[index]
+            m_x = self.transforms(m_x)
             output = self.net(m_x)
             loss_m = self.ce(output, m_y)
             self.loss_v = self.beta * self.loss_v + (1 - self.beta) * loss_m.detach()

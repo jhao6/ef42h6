@@ -1,15 +1,11 @@
-import torch
+import torch, torchvision
+
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-
-from .common import MLP, ResNet18
-import random
-
 
 from torch.nn import functional as F
-from .utils_der import Buffer
 
+from torchvision import transforms
 
 def compute_offsets(n_classes, t):
     """
@@ -38,7 +34,10 @@ class Net(nn.Module):
         self.opt = optim.Adam(self.parameters(), args.lr)
 
         self.n_memories = args.n_memories
-
+        self.transforms = transforms.Compose([
+                            transforms.RandomHorizontalFlip(0.5),
+                            transforms.RandomResizedCrop(size=(32, 32))
+        ])
         # allocate episodic memory for inputs and its logit outputs
         self.memory_data = torch.zeros(
             n_tasks, self.n_memories, 3, n_inputs, n_inputs, dtype=torch.float)
@@ -100,6 +99,7 @@ class Net(nn.Module):
             # shuffle
             index = torch.randperm(len(m_x))
             m_x, m_l = m_x[index], m_l[index]
+            m_x = self.transforms(m_x)
             output = self.net(m_x)
             # kl loss
             loss_v = self.args.alpha * F.mse_loss(output, m_l)
